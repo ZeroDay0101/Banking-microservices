@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  mongo:
+    image: mongo:8.2.5
+    container_name: mongo
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  authorization-server:
+    build:
+      context: .
+      dockerfile: ./authorization-server/Dockerfile
+    container_name: authorization-server
+    depends_on:
+      mongo:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+      - "5005:5005"
+    environment:
+      SPRING_MONGODB_URI: mongodb://mongo:27017/account-service
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+  account-service:
+    build:
+      context: .
+      dockerfile: ./account-service/Dockerfile
+    container_name: account-service
+    depends_on:
+      mongo:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      authorization-server:
+        condition: service_started
+    ports:
+      - "8081:8081"
+      - "5006:5006"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/account-service
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+  transaction-service:
+    build:
+      context: .
+      dockerfile: ./transaction-service/Dockerfile
+    container_name: transaction-service
+    depends_on:
+      mongo:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      authorization-server:
+        condition: service_started
+      account-service:
+        condition: service_started
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_MONGODB_URI: mongodb://mongo:27017/account-service
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+  fraud-service:
+    build:
+      context: .
+      dockerfile: ./fraud-service/Dockerfile
+    container_name: fraud-service
+    depends_on:
+      mongo:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      authorization-server:
+        condition: service_started
+      transaction-service:
+        condition: service_started
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_MONGODB_URI: mongodb://mongo:27017/account-service
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+  authorization-client:
+    build:
+      context: .
+      dockerfile: ./authorization-client/Dockerfile
+    container_name: authorization-client
+    depends_on:
+      authorization-server:
+        condition: service_started
+      account-service:
+        condition: service_started
+      transaction-service:
+        condition: service_started
+      fraud-service:
+        condition: service_started
+    ports:
+      - "8080:8080"
+
+
+volumes:
+  mongo-data:

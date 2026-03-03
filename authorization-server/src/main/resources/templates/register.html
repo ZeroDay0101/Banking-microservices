@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>Register | Banking</title>
+    <style>
+        :root {
+            --bg-top: #f6efe2;
+            --bg-bottom: #dde9ff;
+            --panel: #ffffff;
+            --ink: #162132;
+            --accent: #0f7a6d;
+            --accent-hover: #0b6157;
+            --danger: #b73a3a;
+            --success: #1f7a1f;
+            --border: #d6dfeb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+            background: linear-gradient(145deg, var(--bg-top), var(--bg-bottom));
+            color: var(--ink);
+            display: grid;
+            place-items: center;
+            padding: 20px;
+        }
+
+        .shell {
+            width: min(440px, 100%);
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 16px 40px rgba(22, 33, 50, 0.15);
+        }
+
+        .title {
+            margin: 0 0 6px;
+            font-size: clamp(1.6rem, 2.8vw, 2.1rem);
+            letter-spacing: 0.02em;
+        }
+
+        .subtitle {
+            margin: 0 0 20px;
+            color: #4f5b6c;
+        }
+
+        .notice {
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin: 0 0 14px;
+            font-size: 0.95rem;
+        }
+
+        .notice-error {
+            border: 1px solid #ebc6c6;
+            background: #fff0f0;
+            color: var(--danger);
+        }
+
+        .notice-success {
+            border: 1px solid #b8dfb8;
+            background: #f2fff2;
+            color: var(--success);
+        }
+
+        label {
+            display: block;
+            margin: 12px 0 6px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        input {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 11px 12px;
+            font-size: 1rem;
+            background: #fff;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #79a9ff;
+            box-shadow: 0 0 0 3px rgba(121, 169, 255, 0.25);
+        }
+
+        .field-error {
+            margin-top: 6px;
+            color: var(--danger);
+            font-size: 0.86rem;
+        }
+
+        .submit {
+            width: 100%;
+            margin-top: 18px;
+            border: 0;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            background: var(--accent);
+            cursor: pointer;
+        }
+
+        .submit:hover {
+            background: var(--accent-hover);
+        }
+
+        .hint {
+            margin-top: 14px;
+            text-align: center;
+            color: #5c697b;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+<main class="shell">
+    <h1 class="title">Create Account</h1>
+    <p class="subtitle">Register a new user in Banking Authorization Server.</p>
+
+    <div class="notice notice-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="notice notice-error" th:each="err : ${#fields.globalErrors()}" th:if="${#fields.hasGlobalErrors()}"
+         th:text="${err}"></div>
+
+    <form method="post" novalidate th:action="@{/register}" th:object="${form}">
+        <label for="username">Username</label>
+        <input autocomplete="username" id="username" placeholder="e.g. ada.lovelace" th:field="*{username}"
+               type="text">
+        <div class="field-error" th:errors="*{username}" th:if="${#fields.hasErrors('username')}"></div>
+
+        <label for="password">Password</label>
+        <input autocomplete="new-password" id="password" placeholder="Choose a strong password" th:field="*{password}"
+               type="password">
+        <div class="field-error" th:errors="*{password}" th:if="${#fields.hasErrors('password')}"></div>
+
+        <label for="confirmPassword">Confirm password</label>
+        <input autocomplete="new-password" id="confirmPassword" placeholder="Re-enter password"
+               th:field="*{confirmPassword}"
+               type="password">
+        <div class="field-error" th:errors="*{confirmPassword}" th:if="${#fields.hasErrors('confirmPassword')}">
+        </div>
+
+        <button class="submit" type="submit">Register</button>
+    </form>
+
+    <p class="hint">API registration is still available via JSON POST to <code>/auth/register</code>.</p>
+    <p class="hint">Already have an account? <a th:href="@{/login}">Sign in</a></p>
+</main>
+</body>
+
+</html>

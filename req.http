@@ -1,0 +1,75 @@
+##File with example requests
+POST http://localhost:9000/auth/register
+Content-Type: application/json
+
+{
+  "username": "exampleUser",
+  "password": "1234"
+}
+
+###
+POST http://localhost:9000/auth/register
+
+###
+@cookie = SESSION=PASTE_YOUR_SESSION_HERE
+###
+GET http://localhost:8080/account/api/accounts/{exampleUser}
+Cookie: {{cookie}}
+
+###
+GET http://localhost:8080/account/api/accounts/balance
+Cookie: {{cookie}}
+
+###
+POST http://localhost:8080/account/api/accounts/deposit
+Cookie: {{cookie}}
+Content-Type: application/json
+
+{
+  "amount": 1
+}
+
+###
+POST http://localhost:8080/account/api/accounts/withdraw
+Cookie: {{cookie}}
+Content-Type: application/json
+
+{
+  "amount": 1
+}
+
+###
+POST http://localhost:8080/account/api/accounts/transfer
+Cookie: {{cookie}}
+Content-Type: application/json
+
+{
+  "recipientUsername": "exampleuser",
+  "amount": 1
+}
+
+### Transaction req
+
+GET http://localhost:8080/transaction/api/transactions/{exampleId}
+Cookie: {{cookie}}
+
+###
+GET http://localhost:8080/transaction/api/transactions/user/{exampleUser}
+Cookie: {{cookie}}
+
+###
+GET http://localhost:8080/transaction/api/transactions/recipient/{exampleRecipient}
+Cookie: {{cookie}}
+
+### Fraud req
+
+GET http://localhost:8080/fraud/api/fraud
+Cookie: {{cookie}}
+
+###
+GET http://localhost:8080/fraud/api/fraud/{exampleId}
+Cookie: {{cookie}}
+
+###
+GET http://localhost:8080/fraud/api/fraud/user/{exampleUser}
+Cookie: {{cookie}}

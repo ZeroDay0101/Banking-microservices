@@ -1,0 +1,33 @@
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: auth-service
+              uri: http://account-service:8081
+              predicates:
+                - Path=/auth/**
+              filters:
+                - TokenRelay
+
+            - id: transaction-service
+              uri: http://transaction-service:8082
+              predicates:
+                - Path=/transaction/**
+              filters:
+                - TokenRelay
+
+            - id: fraud-service
+              uri: http://fraud-service:8083
+              predicates:
+                - Path=/fraud/**
+              filters:
+                - TokenRelay
+
+            - id: account-service
+              uri: http://account-service:8081
+              predicates:
+                - Path=/account/**
+              filters:
+                - TokenRelay
